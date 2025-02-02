@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Airbnb Earnings Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <!-- Responsive Meta Tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+      <h1 class="text-3xl font-bold text-center mb-6">
+        Airbnb Earnings Tracker
+      </h1>
+      <!-- Input Form -->
+      <div class="max-w-lg mx-auto bg-white p-6 rounded shadow">
+        <form id="earningsForm">
+          <div class="mb-4">
+            <label for="guestName" class="block text-gray-700 font-semibold"
+              >Guest Name</label
+            >
+            <input
+              type="text"
+              id="guestName"
+              class="mt-1 w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label
+              for="reservationTotal"
+              class="block text-gray-700 font-semibold"
+              >Reservation Total (DH)</label
+            >
+            <input
+              type="number"
+              id="reservationTotal"
+              class="mt-1 w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label for="yourEarnings" class="block text-gray-700 font-semibold"
+              >Your Earnings (DH)</label
+            >
+            <input
+              type="number"
+              id="yourEarnings"
+              class="mt-1 w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div class="mb-6">
+            <label
+              for="brotherEarnings"
+              class="block text-gray-700 font-semibold"
+              >Brother's Earnings (DH)</label
+            >
+            <input
+              type="number"
+              id="brotherEarnings"
+              class="mt-1 w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-blue-500 text-white font-bold py-2 rounded hover:bg-blue-600 transition duration-200"
+          >
+            Add Entry
+          </button>
+        </form>
+      </div>
+
+      <!-- Earnings Table -->
+      <div class="mt-10 max-w-3xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4">Earnings History</h2>
+        <table class="min-w-full bg-white border">
+          <thead>
+            <tr>
+              <th
+                class="px-6 py-3 border-b text-left text-sm font-semibold text-gray-600"
+              >
+                Date
+              </th>
+              <th
+                class="px-6 py-3 border-b text-left text-sm font-semibold text-gray-600"
+              >
+                Guest Name
+              </th>
+              <th
+                class="px-6 py-3 border-b text-left text-sm font-semibold text-gray-600"
+              >
+                Reservation Total (DH)
+              </th>
+              <th
+                class="px-6 py-3 border-b text-left text-sm font-semibold text-gray-600"
+              >
+                Your Earnings (DH)
+              </th>
+              <th
+                class="px-6 py-3 border-b text-left text-sm font-semibold text-gray-600"
+              >
+                Brother's Earnings (DH)
+              </th>
+              <th
+                class="px-6 py-3 border-b text-left text-sm font-semibold text-gray-600"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody id="earningsTableBody">
+            <!-- Entries will populate here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Total Earnings Summary -->
+      <div class="mt-8 max-w-md mx-auto bg-white p-6 rounded shadow">
+        <h2 class="text-2xl font-bold mb-4 text-center">Total Earnings</h2>
+        <div class="flex justify-between mb-2">
+          <span class="font-semibold text-gray-700">Total Reservation:</span>
+          <span id="totalReservation" class="text-gray-700">0.00 DH</span>
+        </div>
+        <div class="flex justify-between mb-2">
+          <span class="font-semibold text-gray-700">Your Total Earnings:</span>
+          <span id="totalYourEarnings" class="text-gray-700">0.00 DH</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="font-semibold text-gray-700"
+            >Brother's Total Earnings:</span
+          >
+          <span id="totalBrotherEarnings" class="text-gray-700">0.00 DH</span>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="mt-8 max-w-3xl mx-auto bg-white p-6 rounded shadow">
+        <h2 class="text-2xl font-bold mb-4 text-center">Earnings Chart</h2>
+        <canvas id="earningsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      let selectedEntryIndex = null; // To track the entry being edited
+
+      // Handle form submission
+      document
+        .getElementById('earningsForm')
+        .addEventListener('submit', function (event) {
+          event.preventDefault();
+
+          // Retrieve input values
+          const guestName = document.getElementById('guestName').value.trim();
+          const reservationTotal = parseFloat(
+            document.getElementById('reservationTotal').value
+          );
+          const yourEarnings = parseFloat(
+            document.getElementById('yourEarnings').value
+          );
+          const brotherEarnings = parseFloat(
+            document.getElementById('brotherEarnings').value
+          );
+          const date = new Date().toLocaleDateString();
+
+          // Validate earnings
+          if (yourEarnings + brotherEarnings > reservationTotal) {
+            alert(
+              'The sum of individual earnings exceeds the reservation total.'
+            );
+            return;
+          }
+
+          // Create or update entry
+          const entry = {
+            date,
+            guestName,
+            reservationTotal,
+            yourEarnings,
+            brotherEarnings,
+          };
+          let entries =
+            JSON.parse(localStorage.getItem('earningsEntries')) || [];
+
+          if (selectedEntryIndex === null) {
+            entries.push(entry);
+          } else {
+            entries[selectedEntryIndex] = entry;
+            selectedEntryIndex = null;
+            document
+              .getElementById('earningsForm')
+              .querySelector('button[type="submit"]').textContent = 'Add Entry';
+          }
+
+          // Save entries
+          localStorage.setItem('earningsEntries', JSON.stringify(entries));
+
+          // Refresh table and chart
+          displayEntries();
+          updateTotals();
+          renderChart();
+
+          // Reset form
+          this.reset();
+        });
+
+      // Display entries in table
+      function displayEntries() {
+        const tableBody = document.getElementById('earningsTableBody');
+        tableBody.innerHTML = '';
+        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+
+        entries.forEach((entry, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+                    <td class="px-6 py-4 border-b text-sm text-gray-700">${
+                      entry.date
+                    }</td>
+                    <td class="px-6 py-4 border-b text-sm text-gray-700">${
+                      entry.guestName
+                    }</td>
+                    <td class="px-6 py-4 border-b text-sm text-gray-700">${entry.reservationTotal.toFixed(
+                      2
+                    )} DH</td>
+                    <td class="px-6 py-4 border-b text-sm text-gray-700">${entry.yourEarnings.toFixed(
+                      2
+                    )} DH</td>
+                    <td class="px-6 py-4 border-b text-sm text-gray-700">${entry.brotherEarnings.toFixed(
+                      2
+                    )} DH</td>
+                    <td class="px-6 py-4 border-b text-sm text-gray-700">
+                        <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="editEntry(${index})">Edit</button>
+                        <button class="text-red-500 hover:text-red-700" onclick="deleteEntry(${index})">Delete</button>
+                    </td>
+                `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      // Edit an entry
+      function editEntry(index) {
+        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+        const entry = entries[index];
+
+        document.getElementById('guestName').value = entry.guestName;
+        document.getElementById('reservationTotal').value =
+          entry.reservationTotal;
+        document.getElementById('yourEarnings').value = entry.yourEarnings;
+        document.getElementById('brotherEarnings').value =
+          entry.brotherEarnings;
+
+        selectedEntryIndex = index;
+        document
+          .getElementById('earningsForm')
+          .querySelector('button[type="submit"]').textContent = 'Update Entry';
+      }
+
+      // Delete an entry
+      function deleteEntry(index) {
+        if (confirm('Are you sure you want to delete this entry?')) {
+          let entries =
+            JSON.parse(localStorage.getItem('earningsEntries')) || [];
+          entries.splice(index, 1);
+          localStorage.setItem('earningsEntries', JSON.stringify(entries));
+          displayEntries();
+          updateTotals();
+          renderChart();
+        }
+      }
+
+      // Update total earnings
+      function updateTotals() {
+        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+
+        let totalReservation = entries.reduce(
+          (sum, entry) => sum + entry.reservationTotal,
+          0
+        );
+        let totalYourEarnings = entries.reduce(
+          (sum, entry) => sum + entry.yourEarnings,
+          0
+        );
+        let totalBrotherEarnings = entries.reduce(
+          (sum, entry) => sum + entry.brotherEarnings,
+          0
+        );
+
+        document.getElementById(
+          'totalReservation'
+        ).textContent = `${totalReservation.toFixed(2)} DH`;
+        document.getElementById(
+          'totalYourEarnings'
+        ).textContent = `${totalYourEarnings.toFixed(2)} DH`;
+        document.getElementById(
+          'totalBrotherEarnings'
+        ).textContent = `${totalBrotherEarnings.toFixed(2)} DH`;
+      }
+
+      // Render earnings chart
+      function renderChart() {
+        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+        const ctx = document.getElementById('earningsChart').getContext('2d');
+
+        // Clear existing chart if it exists
+        if (window.earningsChart) {
+          window.earningsChart.destroy();
+        }
+
+        if (entries.length === 0) {
+          // No data to display, clear the canvas
+          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          return;
+        }
+
+        let dates = entries.map((entry) => entry.date);
+        let yourEarningsData = entries.map((entry) => entry.yourEarnings);
+        let brotherEarningsData = entries.map((entry) => entry.brotherEarnings);
+
+        window.earningsChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                label: 'Your Earnings (DH)',
+                data: yourEarningsData,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+              },
+              {
+                label: "Brother's Earnings (DH)",
+                data: brotherEarningsData,
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: {
+                stacked: true,
+                title: { display: true, text: 'Date' },
+              },
+              y: {
+                stacked: true,
+                title: { display: true, text: 'Earnings (DH)' },
+              },
+            },
+          },
+        });
+      }
+
+      // Load entries on page load
+      window.onload = function () {
+        displayEntries();
+        updateTotals();
+        renderChart();
+      };
+    </script>
+  </body>
+</html>
