@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Airbnb Earnings Tracker</title>
+    <link href="./output.css" rel="stylesheet" />
+    <!-- Meta Tags -->
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#4F46E5" />
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Custom CSS (Optional) -->
+    <style>
+      /* Custom styles can go here */
+      /* Hide the calculated daily rate input field */
+      #dailyRate {
+        background-color: #f9fafb;
+      }
+    </style>
+  </head>
+  <body class="antialiased text-gray-800 bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white fixed w-full z-50 shadow-md">
+      <div
+        class="container mx-auto px-4 py-4 flex items-center justify-between"
+      >
+        <!-- Logo -->
+        <a href="#" class="text-2xl font-bold text-indigo-600">
+          AirbnbTracker
+        </a>
+        <!-- Mobile Menu Button -->
+        <div class="md:hidden">
+          <button
+            id="mobile-menu-button"
+            class="text-gray-600 hover:text-indigo-600 focus:outline-none"
+          >
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-24 md:pt-32 pb-16">
+      <div class="container mx-auto px-4">
+        <!-- Form Section -->
+        <div
+          class="max-w-lg mx-auto bg-white p-6 rounded shadow"
+          data-aos="fade-up"
+        >
+          <h2 class="text-2xl font-bold mb-6 text-center">Add New Entry</h2>
+          <form id="earningsForm">
+            <div class="mb-4">
+              <label for="guestName" class="block text-gray-700 font-semibold"
+                >Guest Name</label
+              >
+              <input
+                type="text"
+                id="guestName"
+                class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+                required
+              />
+            </div>
+            <div class="flex flex-col md:flex-row md:space-x-4">
+              <div class="mb-4 w-full">
+                <label for="numDays" class="block text-gray-700 font-semibold"
+                  >Number of Days</label
+                >
+                <input
+                  type="number"
+                  id="numDays"
+                  class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+                  required
+                  min="1"
+                />
+              </div>
+              <div class="mb-4 w-full">
+                <label
+                  for="reservationTotal"
+                  class="block text-gray-700 font-semibold"
+                  >Reservation Total (DH)</label
+                >
+                <input
+                  type="number"
+                  id="reservationTotal"
+                  class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+                  required
+                  min="0"
+                />
+              </div>
+            </div>
+            <div class="mb-4">
+              <label for="dailyRate" class="block text-gray-700 font-semibold"
+                >Daily Rate (DH)</label
+              >
+              <input
+                type="number"
+                id="dailyRate"
+                class="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+                readonly
+              />
+            </div>
+            <div class="flex flex-col md:flex-row md:space-x-4">
+              <div class="mb-4 w-full">
+                <label
+                  for="yourDailyEarnings"
+                  class="block text-gray-700 font-semibold"
+                  >Your Daily Earning (DH)</label
+                >
+                <input
+                  type="number"
+                  id="yourDailyEarnings"
+                  class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+                  required
+                  min="0"
+                />
+              </div>
+              <div class="mb-4 w-full">
+                <label
+                  for="brotherDailyEarnings"
+                  class="block text-gray-700 font-semibold"
+                  >Brother's Daily Earning (DH)</label
+                >
+                <input
+                  type="number"
+                  id="brotherDailyEarnings"
+                  class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+                  required
+                  min="0"
+                />
+              </div>
+            </div>
+            <!-- Earnings Calculated -->
+            <div class="mb-4">
+              <label class="block text-gray-700 font-semibold"
+                >Your Earnings for Reservation (DH)</label
+              >
+              <input
+                type="number"
+                id="yourTotalEarnings"
+                class="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+                readonly
+              />
+            </div>
+            <div class="mb-4">
+              <label class="block text-gray-700 font-semibold"
+                >Brother's Earnings for Reservation (DH)</label
+              >
+              <input
+                type="number"
+                id="brotherTotalEarnings"
+                class="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+                readonly
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-indigo-600 text-white font-bold py-2 rounded hover:bg-indigo-700 transition duration-300"
+            >
+              Add Entry
+            </button>
+          </form>
+        </div>
+
+        <!-- Earnings Table -->
+        <div class="mt-10 max-w-full overflow-x-auto">
+          <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-2xl font-bold mb-4">Earnings History</h2>
+            <div id="earningsByMonth">
+              <!-- Monthly earnings tables will populate here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Total Earnings Summary -->
+        <div class="mt-8 max-w-md mx-auto bg-white p-6 rounded shadow">
+          <h2 class="text-2xl font-bold mb-4 text-center">Total Earnings</h2>
+          <div class="flex justify-between mb-2">
+            <span class="font-semibold text-gray-700">Total Reservation:</span>
+            <span id="totalReservation" class="text-gray-700">0.00 DH</span>
+          </div>
+          <div class="flex justify-between mb-2">
+            <span class="font-semibold text-gray-700"
+              >Your Total Earnings:</span
+            >
+            <span id="totalYourEarnings" class="text-gray-700">0.00 DH</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="font-semibold text-gray-700"
+              >Brother's Total Earnings:</span
+            >
+            <span id="totalBrotherEarnings" class="text-gray-700">0.00 DH</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+      // Mobile Menu Toggle
+      const menuButton = document.getElementById('mobile-menu-button');
+      const mobileMenu = document.getElementById('mobile-menu');
+      menuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+
+      let selectedEntryIndex = null; // To track the entry being edited
+
+      // Handle form submission
+      document
+        .getElementById('earningsForm')
+        .addEventListener('submit', function (event) {
+          event.preventDefault();
+
+          // Retrieve input values
+          const guestName = document.getElementById('guestName').value.trim();
+          const numDays = parseInt(document.getElementById('numDays').value);
+          const reservationTotal = parseFloat(
+            document.getElementById('reservationTotal').value
+          );
+          const dailyRate = reservationTotal / numDays;
+          const yourDailyEarnings = parseFloat(
+            document.getElementById('yourDailyEarnings').value
+          );
+          const brotherDailyEarnings = parseFloat(
+            document.getElementById('brotherDailyEarnings').value
+          );
+          const yourTotalEarnings = yourDailyEarnings * numDays;
+          const brotherTotalEarnings = brotherDailyEarnings * numDays;
+          const dateObj = new Date();
+          const date = dateObj.toLocaleDateString();
+          const monthYear = dateObj.toLocaleString('default', {
+            month: 'long',
+            year: 'numeric',
+          });
+
+          // Validate total earnings
+          const totalEarnings = yourTotalEarnings + brotherTotalEarnings;
+          if (Math.abs(totalEarnings - reservationTotal) > 0.01) {
+            alert(
+              "The sum of your earnings and your brother's earnings does not match the reservation total."
+            );
+            return;
+          }
+
+          // Create or update entry
+          const entry = {
+            date,
+            guestName,
+            numDays,
+            dailyRate,
+            reservationTotal,
+            yourTotalEarnings,
+            brotherTotalEarnings,
+            monthYear,
+          };
+
+          let entries =
+            JSON.parse(localStorage.getItem('earningsEntries')) || [];
+
+          if (selectedEntryIndex === null) {
+            entries.push(entry);
+          } else {
+            entries[selectedEntryIndex] = entry;
+            selectedEntryIndex = null;
+            document.querySelector(
+              '#earningsForm button[type="submit"]'
+            ).textContent = 'Add Entry';
+          }
+
+          // Save entries
+          localStorage.setItem('earningsEntries', JSON.stringify(entries));
+
+          // Refresh table and totals
+          displayEntries();
+          updateTotals();
+
+          // Reset form
+          this.reset();
+          document.getElementById('dailyRate').value = '';
+          document.getElementById('yourTotalEarnings').value = '';
+          document.getElementById('brotherTotalEarnings').value = '';
+        });
+
+      // Calculate and display daily rate and total earnings when inputs change
+      function calculateEarnings() {
+        const numDays = parseInt(document.getElementById('numDays').value) || 0;
+        const reservationTotal =
+          parseFloat(document.getElementById('reservationTotal').value) || 0;
+        const yourDailyEarnings =
+          parseFloat(document.getElementById('yourDailyEarnings').value) || 0;
+        const brotherDailyEarnings =
+          parseFloat(document.getElementById('brotherDailyEarnings').value) ||
+          0;
+
+        if (numDays > 0) {
+          const dailyRate = reservationTotal / numDays;
+          document.getElementById('dailyRate').value = dailyRate.toFixed(2);
+          document.getElementById('yourTotalEarnings').value = (
+            yourDailyEarnings * numDays
+          ).toFixed(2);
+          document.getElementById('brotherTotalEarnings').value = (
+            brotherDailyEarnings * numDays
+          ).toFixed(2);
+        } else {
+          document.getElementById('dailyRate').value = '';
+          document.getElementById('yourTotalEarnings').value = '';
+          document.getElementById('brotherTotalEarnings').value = '';
+        }
+      }
+
+      // Attach event listeners to inputs
+      document
+        .getElementById('numDays')
+        .addEventListener('input', calculateEarnings);
+      document
+        .getElementById('reservationTotal')
+        .addEventListener('input', calculateEarnings);
+      document
+        .getElementById('yourDailyEarnings')
+        .addEventListener('input', calculateEarnings);
+      document
+        .getElementById('brotherDailyEarnings')
+        .addEventListener('input', calculateEarnings);
+
+      // Display entries grouped by month
+      function displayEntries() {
+        const earningsByMonth = document.getElementById('earningsByMonth');
+        earningsByMonth.innerHTML = '';
+        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+
+        // Group entries by month
+        const groupedEntries = {};
+        entries.forEach((entry) => {
+          if (!groupedEntries[entry.monthYear]) {
+            groupedEntries[entry.monthYear] = [];
+          }
+          groupedEntries[entry.monthYear].push(entry);
+        });
+
+        // For each month, create a table
+        for (const month in groupedEntries) {
+          const monthEntries = groupedEntries[month];
+
+          // Calculate monthly totals
+          const monthlyTotals = monthEntries.reduce(
+            (totals, entry) => {
+              totals.reservationTotal += entry.reservationTotal;
+              totals.yourTotalEarnings += entry.yourTotalEarnings;
+              totals.brotherTotalEarnings += entry.brotherTotalEarnings;
+              return totals;
+            },
+            {
+              reservationTotal: 0,
+              yourTotalEarnings: 0,
+              brotherTotalEarnings: 0,
+            }
+          );
+
+          // Create month header
+          const monthHeader = document.createElement('h3');
+          monthHeader.className = 'text-xl font-bold mt-6 mb-2';
+          monthHeader.textContent = `${month}`;
+
+          // Create table
+          const table = document.createElement('table');
+          table.className = 'min-w-full bg-white border mb-4';
+          table.innerHTML = `
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Date</th>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Guest Name</th>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Number of Days</th>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Daily Rate (DH)</th>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Reservation Total (DH)</th>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Your Earnings (DH)</th>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Brother's Earnings (DH)</th>
+                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${monthEntries
+                          .map(
+                            (entry, index) => `
+                            <tr>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">${
+                                  entry.date
+                                }</td>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">${
+                                  entry.guestName
+                                }</td>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">${
+                                  entry.numDays
+                                }</td>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.dailyRate.toFixed(
+                                  2
+                                )} DH</td>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.reservationTotal.toFixed(
+                                  2
+                                )} DH</td>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.yourTotalEarnings.toFixed(
+                                  2
+                                )} DH</td>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.brotherTotalEarnings.toFixed(
+                                  2
+                                )} DH</td>
+                                <td class="px-4 py-2 border-b text-sm text-gray-700">
+                                    <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="editEntry(${entries.indexOf(
+                                      entry
+                                    )})">Edit</button>
+                                    <button class="text-red-500 hover:text-red-700" onclick="deleteEntry(${entries.indexOf(
+                                      entry
+                                    )})">Delete</button>
+                                </td>
+                            </tr>
+                            `
+                          )
+                          .join('')}
+                    </tbody>
+                    <tfoot class="bg-gray-100">
+                        <tr>
+                            <td colspan="4" class="px-4 py-2 border-t text-right font-semibold text-gray-700">Monthly Totals:</td>
+                            <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.reservationTotal.toFixed(
+                              2
+                            )} DH</td>
+                            <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.yourTotalEarnings.toFixed(
+                              2
+                            )} DH</td>
+                            <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.brotherTotalEarnings.toFixed(
+                              2
+                            )} DH</td>
+                            <td class="px-4 py-2 border-t"></td>
+                        </tr>
+                    </tfoot>
+                `;
+
+          // Append to the earningsByMonth container
+          earningsByMonth.appendChild(monthHeader);
+          earningsByMonth.appendChild(table);
+        }
+      }
+
+      // Edit an entry
+      function editEntry(index) {
+        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+        const entry = entries[index];
+
+        document.getElementById('guestName').value = entry.guestName;
+        document.getElementById('numDays').value = entry.numDays;
+        document.getElementById('reservationTotal').value =
+          entry.reservationTotal;
+        document.getElementById('dailyRate').value = entry.dailyRate.toFixed(2);
+        document.getElementById('yourDailyEarnings').value = (
+          entry.yourTotalEarnings / entry.numDays
+        ).toFixed(2);
+        document.getElementById('brotherDailyEarnings').value = (
+          entry.brotherTotalEarnings / entry.numDays
+        ).toFixed(2);
+        document.getElementById('yourTotalEarnings').value =
+          entry.yourTotalEarnings.toFixed(2);
+        document.getElementById('brotherTotalEarnings').value =
+          entry.brotherTotalEarnings.toFixed(2);
+
+        selectedEntryIndex = index;
+        document.querySelector(
+          '#earningsForm button[type="submit"]'
+        ).textContent = 'Update Entry';
+      }
+
+      // Delete an entry
+      function deleteEntry(index) {
+        if (confirm('Are you sure you want to delete this entry?')) {
+          let entries =
+            JSON.parse(localStorage.getItem('earningsEntries')) || [];
+          entries.splice(index, 1);
+          localStorage.setItem('earningsEntries', JSON.stringify(entries));
+          displayEntries();
+          updateTotals();
+        }
+      }
+
+      // Update total earnings
+      function updateTotals() {
+        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+
+        let totalReservation = entries.reduce(
+          (sum, entry) => sum + entry.reservationTotal,
+          0
+        );
+        let totalYourEarnings = entries.reduce(
+          (sum, entry) => sum + entry.yourTotalEarnings,
+          0
+        );
+        let totalBrotherEarnings = entries.reduce(
+          (sum, entry) => sum + entry.brotherTotalEarnings,
+          0
+        );
+
+        document.getElementById(
+          'totalReservation'
+        ).textContent = `${totalReservation.toFixed(2)} DH`;
+        document.getElementById(
+          'totalYourEarnings'
+        ).textContent = `${totalYourEarnings.toFixed(2)} DH`;
+        document.getElementById(
+          'totalBrotherEarnings'
+        ).textContent = `${totalBrotherEarnings.toFixed(2)} DH`;
+      }
+
+      // Load entries on page load
+      window.onload = function () {
+        displayEntries();
+        updateTotals();
+      };
+
+      // Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('service-worker.js')
+            .then((registration) => {
+              console.log(
+                'ServiceWorker registered with scope:',
+                registration.scope
+              );
+            })
+            .catch((error) => {
+              console.error('ServiceWorker registration failed:', error);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
