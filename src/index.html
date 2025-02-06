@@ -5,17 +5,20 @@
     <title>Airbnb Earnings Tracker</title>
     <link href="./output.css" rel="stylesheet" />
     <!-- Meta Tags -->
-    <!-- Theme Color -->
     <meta name="theme-color" content="#4F46E5" />
-    <!-- Manifest -->
     <link rel="manifest" href="manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Custom CSS (Optional) -->
     <style>
       /* Custom styles can go here */
-      /* Hide the calculated daily rate input field */
-      #dailyRate {
+      #dailyRate,
+      #yourTotalEarnings,
+      #brotherTotalEarnings {
         background-color: #f9fafb;
+      }
+      /* Modal overlay for sign in */
+      .modal-overlay {
+        background: rgba(0, 0, 0, 0.6);
       }
     </style>
   </head>
@@ -26,10 +29,19 @@
         class="container mx-auto px-4 py-4 flex items-center justify-between"
       >
         <!-- Logo -->
-        <a href="#" class="text-2xl font-bold text-indigo-600">
-          AirbnbTracker
-        </a>
-        <!-- Mobile Menu Button -->
+        <a href="#" class="text-2xl font-bold text-indigo-600">AirbnbTracker</a>
+        <!-- Auth Button -->
+        <div id="authButtonContainer">
+          <!-- This button will show "Sign In" when no user is signed in,
+               and "Sign Out" when a user is signed in. -->
+          <button
+            id="authButton"
+            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-300"
+          >
+            Sign In
+          </button>
+        </div>
+        <!-- Mobile Menu Button (if needed) -->
         <div class="md:hidden">
           <button
             id="mobile-menu-button"
@@ -53,12 +65,63 @@
       </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- Sign In Modal -->
+    <div
+      id="signInModal"
+      class="fixed inset-0 flex items-center justify-center hidden modal-overlay"
+    >
+      <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+        <h2 class="text-2xl font-bold mb-4 text-center">Sign In</h2>
+        <form id="signInForm" class="space-y-4">
+          <div>
+            <label class="block text-gray-700 font-semibold" for="email"
+              >Email</label
+            >
+            <input
+              type="email"
+              id="email"
+              class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+          <div>
+            <label class="block text-gray-700 font-semibold" for="password"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password"
+              class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+              placeholder="Your password"
+              required
+            />
+          </div>
+          <div class="flex justify-end space-x-2">
+            <button
+              type="button"
+              id="cancelSignIn"
+              class="px-4 py-2 rounded border text-gray-600 hover:bg-gray-100 transition duration-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-300"
+            >
+              Sign In
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Content (Earnings Tracker) -->
     <main class="pt-24 md:pt-32 pb-16">
       <div class="container mx-auto px-4">
         <!-- Form Section -->
         <div
-          class="max-w-lg mx-auto bg-white p-6 rounded shadow"
+          class="max-w-lg mx-auto bg-white p-6 rounded shadow-lg"
           data-aos="fade-up"
         >
           <h2 class="text-2xl font-bold mb-6 text-center">Add New Entry</h2>
@@ -81,6 +144,7 @@
                 >
                 <input
                   type="number"
+                  step="any"
                   id="numDays"
                   class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
                   required
@@ -95,6 +159,7 @@
                 >
                 <input
                   type="number"
+                  step="any"
                   id="reservationTotal"
                   class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
                   required
@@ -102,14 +167,31 @@
                 />
               </div>
             </div>
+            <!-- Payment Status Field -->
+            <div class="mb-4">
+              <label
+                for="paymentStatus"
+                class="block text-gray-700 font-semibold"
+                >Payment Status</label
+              >
+              <select
+                id="paymentStatus"
+                class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+                required
+              >
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
             <div class="mb-4">
               <label for="dailyRate" class="block text-gray-700 font-semibold"
                 >Daily Rate (DH)</label
               >
               <input
                 type="number"
+                step="any"
                 id="dailyRate"
-                class="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+                class="mt-1 w-full border rounded px-3 py-2"
                 readonly
               />
             </div>
@@ -122,6 +204,7 @@
                 >
                 <input
                   type="number"
+                  step="any"
                   id="yourDailyEarnings"
                   class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
                   required
@@ -136,6 +219,7 @@
                 >
                 <input
                   type="number"
+                  step="any"
                   id="brotherDailyEarnings"
                   class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
                   required
@@ -150,8 +234,9 @@
               >
               <input
                 type="number"
+                step="any"
                 id="yourTotalEarnings"
-                class="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+                class="mt-1 w-full border rounded px-3 py-2"
                 readonly
               />
             </div>
@@ -161,8 +246,9 @@
               >
               <input
                 type="number"
+                step="any"
                 id="brotherTotalEarnings"
-                class="mt-1 w-full border rounded px-3 py-2 bg-gray-100"
+                class="mt-1 w-full border rounded px-3 py-2"
                 readonly
               />
             </div>
@@ -177,7 +263,7 @@
 
         <!-- Earnings Table -->
         <div class="mt-10 max-w-full overflow-x-auto">
-          <div class="bg-white p-4 rounded shadow">
+          <div class="bg-white p-4 rounded shadow-lg">
             <h2 class="text-2xl font-bold mb-4">Earnings History</h2>
             <div id="earningsByMonth">
               <!-- Monthly earnings tables will populate here -->
@@ -185,117 +271,216 @@
           </div>
         </div>
 
-        <!-- Total Earnings Summary -->
-        <div class="mt-8 max-w-md mx-auto bg-white p-6 rounded shadow">
-          <h2 class="text-2xl font-bold mb-4 text-center">Total Earnings</h2>
-          <div class="flex justify-between mb-2">
-            <span class="font-semibold text-gray-700">Total Reservation:</span>
-            <span id="totalReservation" class="text-gray-700">0.00 DH</span>
+        <!-- Totals Summary Section -->
+        <div
+          class="mt-8 max-w-2xl mx-auto bg-white p-6 rounded shadow-lg border-t-4 border-indigo-600"
+        >
+          <h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">
+            Totals Summary
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Left Column: Your Totals -->
+            <div class="p-4 border rounded">
+              <h3 class="text-xl font-semibold text-indigo-600 mb-2">
+                Your Totals
+              </h3>
+              <p class="mb-1">
+                <span class="font-semibold">Total Earnings:</span>
+                <span id="totalYourEarnings" class="font-medium">0.00 DH</span>
+              </p>
+              <p class="mb-1">
+                <span class="font-semibold">Pending Reservations:</span>
+                <span id="totalYourPending" class="font-medium">0.00 DH</span>
+              </p>
+              <p class="mb-1">
+                <span class="font-semibold">Completed Reservations:</span>
+                <span id="totalYourCompleted" class="font-medium">0.00 DH</span>
+              </p>
+            </div>
+            <!-- Right Column: Brother's Totals -->
+            <div class="p-4 border rounded">
+              <h3 class="text-xl font-semibold text-indigo-600 mb-2">
+                Brother's Totals
+              </h3>
+              <p class="mb-1">
+                <span class="font-semibold">Total Earnings:</span>
+                <span id="totalBrotherEarnings" class="font-medium"
+                  >0.00 DH</span
+                >
+              </p>
+              <p class="mb-1">
+                <span class="font-semibold">Pending Reservations:</span>
+                <span id="totalBrotherPending" class="font-medium"
+                  >0.00 DH</span
+                >
+              </p>
+              <p class="mb-1">
+                <span class="font-semibold">Completed Reservations:</span>
+                <span id="totalBrotherCompleted" class="font-medium"
+                  >0.00 DH</span
+                >
+              </p>
+            </div>
           </div>
-          <div class="flex justify-between mb-2">
-            <span class="font-semibold text-gray-700"
-              >Your Total Earnings:</span
-            >
-            <span id="totalYourEarnings" class="text-gray-700">0.00 DH</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="font-semibold text-gray-700"
-              >Brother's Total Earnings:</span
-            >
-            <span id="totalBrotherEarnings" class="text-gray-700">0.00 DH</span>
+          <!-- Overall Reservation Total -->
+          <div class="mt-4 text-center">
+            <p>
+              <span class="font-semibold">Overall Reservation Total:</span>
+              <span id="totalReservation" class="font-medium">0.00 DH</span>
+            </p>
           </div>
         </div>
       </div>
     </main>
 
-    <!-- JavaScript -->
+    <!-- Firebase & Firestore Integration (No Analytics) -->
+    <script type="module">
+      // Import Firebase App, Firestore and Auth functions (no Analytics)
+      import {
+        initializeApp,
+        getApp,
+      } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js';
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        doc,
+        updateDoc,
+        deleteDoc,
+      } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js';
+      import { getAuth } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js';
+
+      // Your Firebase configuration (Analytics removed)
+      const firebaseConfig = {
+        apiKey: 'AIzaSyAzjWppBlZ9kHK--HbyvJwHOvc4tgNaVcI',
+        authDomain: 'airbnbearningstracker.firebaseapp.com',
+        projectId: 'airbnbearningstracker',
+        storageBucket: 'airbnbearningstracker.firebasestorage.app',
+        messagingSenderId: '1027175087983',
+        appId: '1:1027175087983:web:9ee0c86b650ffdfa20b29a',
+      };
+
+      // Initialize Firebase, Firestore and Auth
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // Make auth available globally (if needed)
+      window.auth = auth;
+
+      // Create helper functions for Firestore operations
+      window.firebaseOperations = {
+        async getEntries() {
+          const querySnapshot = await getDocs(
+            collection(db, 'earningsEntries')
+          );
+          let entries = [];
+          querySnapshot.forEach((docSnap) => {
+            entries.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          return entries;
+        },
+        async addEntry(entry) {
+          await addDoc(collection(db, 'earningsEntries'), entry);
+        },
+        async updateEntry(id, entry) {
+          await updateDoc(doc(db, 'earningsEntries', id), entry);
+        },
+        async deleteEntry(id) {
+          await deleteDoc(doc(db, 'earningsEntries', id));
+        },
+      };
+    </script>
+
+    <!-- Firebase Auth & UI Logic -->
+    <script type="module">
+      import {
+        getAuth,
+        signInWithEmailAndPassword,
+        signOut,
+        onAuthStateChanged,
+      } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js';
+      import { getApp } from 'https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js';
+
+      const app = getApp();
+      const auth = getAuth(app);
+
+      const authButton = document.getElementById('authButton');
+      const signInModal = document.getElementById('signInModal');
+      const signInForm = document.getElementById('signInForm');
+      const cancelSignIn = document.getElementById('cancelSignIn');
+
+      // Show modal function
+      function showSignInModal() {
+        signInModal.classList.remove('hidden');
+      }
+      // Hide modal function
+      function hideSignInModal() {
+        signInModal.classList.add('hidden');
+      }
+
+      // Listen for auth state changes
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          authButton.textContent = 'Sign Out';
+          hideSignInModal();
+        } else {
+          authButton.textContent = 'Sign In';
+        }
+      });
+
+      // Handle click on authButton
+      authButton.addEventListener('click', () => {
+        if (auth.currentUser) {
+          signOut(auth)
+            .then(() => {
+              console.log('User signed out');
+            })
+            .catch((error) => {
+              console.error('Error signing out:', error);
+            });
+        } else {
+          showSignInModal();
+        }
+      });
+
+      // Handle sign in form submission
+      signInForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          console.log('User signed in');
+          signInForm.reset();
+          hideSignInModal();
+        } catch (error) {
+          console.error('Error signing in:', error);
+          alert('Sign in failed. Please check your credentials.');
+        }
+      });
+
+      // Handle cancel button on sign in modal
+      cancelSignIn.addEventListener('click', () => {
+        hideSignInModal();
+      });
+    </script>
+
+    <!-- Main Application Script (Earnings Tracker Logic) -->
     <script>
       // Mobile Menu Toggle
       const menuButton = document.getElementById('mobile-menu-button');
       const mobileMenu = document.getElementById('mobile-menu');
-      menuButton.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
-      });
-
-      let selectedEntryIndex = null; // To track the entry being edited
-
-      // Handle form submission
-      document
-        .getElementById('earningsForm')
-        .addEventListener('submit', function (event) {
-          event.preventDefault();
-
-          // Retrieve input values
-          const guestName = document.getElementById('guestName').value.trim();
-          const numDays = parseInt(document.getElementById('numDays').value);
-          const reservationTotal = parseFloat(
-            document.getElementById('reservationTotal').value
-          );
-          const dailyRate = reservationTotal / numDays;
-          const yourDailyEarnings = parseFloat(
-            document.getElementById('yourDailyEarnings').value
-          );
-          const brotherDailyEarnings = parseFloat(
-            document.getElementById('brotherDailyEarnings').value
-          );
-          const yourTotalEarnings = yourDailyEarnings * numDays;
-          const brotherTotalEarnings = brotherDailyEarnings * numDays;
-          const dateObj = new Date();
-          const date = dateObj.toLocaleDateString();
-          const monthYear = dateObj.toLocaleString('default', {
-            month: 'long',
-            year: 'numeric',
-          });
-
-          // Validate total earnings
-          const totalEarnings = yourTotalEarnings + brotherTotalEarnings;
-          if (Math.abs(totalEarnings - reservationTotal) > 0.01) {
-            alert(
-              "The sum of your earnings and your brother's earnings does not match the reservation total."
-            );
-            return;
-          }
-
-          // Create or update entry
-          const entry = {
-            date,
-            guestName,
-            numDays,
-            dailyRate,
-            reservationTotal,
-            yourTotalEarnings,
-            brotherTotalEarnings,
-            monthYear,
-          };
-
-          let entries =
-            JSON.parse(localStorage.getItem('earningsEntries')) || [];
-
-          if (selectedEntryIndex === null) {
-            entries.push(entry);
-          } else {
-            entries[selectedEntryIndex] = entry;
-            selectedEntryIndex = null;
-            document.querySelector(
-              '#earningsForm button[type="submit"]'
-            ).textContent = 'Add Entry';
-          }
-
-          // Save entries
-          localStorage.setItem('earningsEntries', JSON.stringify(entries));
-
-          // Refresh table and totals
-          displayEntries();
-          updateTotals();
-
-          // Reset form
-          this.reset();
-          document.getElementById('dailyRate').value = '';
-          document.getElementById('yourTotalEarnings').value = '';
-          document.getElementById('brotherTotalEarnings').value = '';
+      if (menuButton && mobileMenu) {
+        menuButton.addEventListener('click', () => {
+          mobileMenu.classList.toggle('hidden');
         });
+      }
 
-      // Calculate and display daily rate and total earnings when inputs change
+      let entriesCache = [];
+      let selectedEntryId = null;
+
       function calculateEarnings() {
         const numDays = parseInt(document.getElementById('numDays').value) || 0;
         const reservationTotal =
@@ -322,7 +507,6 @@
         }
       }
 
-      // Attach event listeners to inputs
       document
         .getElementById('numDays')
         .addEventListener('input', calculateEarnings);
@@ -336,26 +520,92 @@
         .getElementById('brotherDailyEarnings')
         .addEventListener('input', calculateEarnings);
 
-      // Display entries grouped by month
-      function displayEntries() {
+      document
+        .getElementById('earningsForm')
+        .addEventListener('submit', async function (event) {
+          event.preventDefault();
+
+          const guestName = document.getElementById('guestName').value.trim();
+          const numDays = parseInt(document.getElementById('numDays').value);
+          const reservationTotal = parseFloat(
+            document.getElementById('reservationTotal').value
+          );
+          const paymentStatus = document.getElementById('paymentStatus').value;
+          const dailyRate = reservationTotal / numDays;
+          const yourDailyEarnings = parseFloat(
+            document.getElementById('yourDailyEarnings').value
+          );
+          const brotherDailyEarnings = parseFloat(
+            document.getElementById('brotherDailyEarnings').value
+          );
+          const yourTotalEarnings = yourDailyEarnings * numDays;
+          const brotherTotalEarnings = brotherDailyEarnings * numDays;
+          const dateObj = new Date();
+          const date = dateObj.toLocaleDateString();
+          const monthYear = dateObj.toLocaleString('default', {
+            month: 'long',
+            year: 'numeric',
+          });
+
+          const totalEarnings = yourTotalEarnings + brotherTotalEarnings;
+          if (Math.abs(totalEarnings - reservationTotal) > 0.01) {
+            alert(
+              "The sum of your earnings and your brother's earnings does not match the reservation total."
+            );
+            return;
+          }
+
+          const entry = {
+            date,
+            guestName,
+            numDays,
+            dailyRate,
+            reservationTotal,
+            yourTotalEarnings,
+            brotherTotalEarnings,
+            monthYear,
+            status: paymentStatus,
+          };
+
+          try {
+            if (!selectedEntryId) {
+              await window.firebaseOperations.addEntry(entry);
+            } else {
+              await window.firebaseOperations.updateEntry(
+                selectedEntryId,
+                entry
+              );
+              selectedEntryId = null;
+              document.querySelector(
+                '#earningsForm button[type="submit"]'
+              ).textContent = 'Add Entry';
+            }
+            await displayEntries();
+            await updateTotals();
+            this.reset();
+            document.getElementById('dailyRate').value = '';
+            document.getElementById('yourTotalEarnings').value = '';
+            document.getElementById('brotherTotalEarnings').value = '';
+          } catch (error) {
+            console.error('Error saving entry:', error);
+          }
+        });
+
+      async function displayEntries() {
         const earningsByMonth = document.getElementById('earningsByMonth');
         earningsByMonth.innerHTML = '';
-        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+        entriesCache = await window.firebaseOperations.getEntries();
 
-        // Group entries by month
         const groupedEntries = {};
-        entries.forEach((entry) => {
+        entriesCache.forEach((entry) => {
           if (!groupedEntries[entry.monthYear]) {
             groupedEntries[entry.monthYear] = [];
           }
           groupedEntries[entry.monthYear].push(entry);
         });
 
-        // For each month, create a table
         for (const month in groupedEntries) {
           const monthEntries = groupedEntries[month];
-
-          // Calculate monthly totals
           const monthlyTotals = monthEntries.reduce(
             (totals, entry) => {
               totals.reservationTotal += entry.reservationTotal;
@@ -370,144 +620,168 @@
             }
           );
 
-          // Create month header
           const monthHeader = document.createElement('h3');
-          monthHeader.className = 'text-xl font-bold mt-6 mb-2';
-          monthHeader.textContent = `${month}`;
+          monthHeader.className =
+            'text-2xl font-bold mt-6 mb-2 text-indigo-600';
+          monthHeader.textContent = month;
 
-          // Create table
           const table = document.createElement('table');
-          table.className = 'min-w-full bg-white border mb-4';
+          table.className =
+            'min-w-full bg-white border rounded shadow mb-4 overflow-hidden';
           table.innerHTML = `
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Date</th>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Guest Name</th>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Number of Days</th>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Daily Rate (DH)</th>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Reservation Total (DH)</th>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Your Earnings (DH)</th>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Brother's Earnings (DH)</th>
-                            <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${monthEntries
-                          .map(
-                            (entry, index) => `
-                            <tr>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">${
-                                  entry.date
-                                }</td>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">${
-                                  entry.guestName
-                                }</td>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">${
-                                  entry.numDays
-                                }</td>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.dailyRate.toFixed(
-                                  2
-                                )} DH</td>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.reservationTotal.toFixed(
-                                  2
-                                )} DH</td>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.yourTotalEarnings.toFixed(
-                                  2
-                                )} DH</td>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">${entry.brotherTotalEarnings.toFixed(
-                                  2
-                                )} DH</td>
-                                <td class="px-4 py-2 border-b text-sm text-gray-700">
-                                    <button class="text-blue-500 hover:text-blue-700 mr-2" onclick="editEntry(${entries.indexOf(
-                                      entry
-                                    )})">Edit</button>
-                                    <button class="text-red-500 hover:text-red-700" onclick="deleteEntry(${entries.indexOf(
-                                      entry
-                                    )})">Delete</button>
-                                </td>
-                            </tr>
-                            `
-                          )
-                          .join('')}
-                    </tbody>
-                    <tfoot class="bg-gray-100">
-                        <tr>
-                            <td colspan="4" class="px-4 py-2 border-t text-right font-semibold text-gray-700">Monthly Totals:</td>
-                            <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.reservationTotal.toFixed(
-                              2
-                            )} DH</td>
-                            <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.yourTotalEarnings.toFixed(
-                              2
-                            )} DH</td>
-                            <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.brotherTotalEarnings.toFixed(
-                              2
-                            )} DH</td>
-                            <td class="px-4 py-2 border-t"></td>
-                        </tr>
-                    </tfoot>
-                `;
-
-          // Append to the earningsByMonth container
+            <thead class="bg-indigo-600 text-white">
+              <tr>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Date</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Guest Name</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Days</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Daily Rate</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Total (DH)</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Your Earnings</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Brother's Earnings</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Status</th>
+                <th class="px-4 py-2 border-b text-left text-sm font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              ${monthEntries
+                .map(
+                  (entry, index) => `
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-2 text-sm text-gray-700">${entry.date}</td>
+                  <td class="px-4 py-2 text-sm text-gray-700">${
+                    entry.guestName
+                  }</td>
+                  <td class="px-4 py-2 text-sm text-gray-700">${
+                    entry.numDays
+                  }</td>
+                  <td class="px-4 py-2 text-sm text-gray-700">${Number(
+                    entry.dailyRate
+                  ).toFixed(2)} DH</td>
+                  <td class="px-4 py-2 text-sm text-gray-700">${Number(
+                    entry.reservationTotal
+                  ).toFixed(2)} DH</td>
+                  <td class="px-4 py-2 text-sm text-gray-700">${Number(
+                    entry.yourTotalEarnings
+                  ).toFixed(2)} DH</td>
+                  <td class="px-4 py-2 text-sm text-gray-700">${Number(
+                    entry.brotherTotalEarnings
+                  ).toFixed(2)} DH</td>
+                  <td class="px-4 py-2 text-sm">
+                    <span class="px-2 py-1 rounded text-xs font-semibold ${
+                      entry.status === 'Pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }">
+                      ${entry.status}
+                    </span>
+                  </td>
+                  <td class="px-4 py-2 text-sm">
+                    <button class="inline-flex items-center px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300 mr-2" onclick="editEntry(${index})">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z" />
+                      </svg>
+                      Edit
+                    </button>
+                    <button class="inline-flex items-center px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300" onclick="deleteEntry(${index})">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4a2 2 0 012 2v2H8V5a2 2 0 012-2z" />
+                      </svg>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              `
+                )
+                .join('')}
+            </tbody>
+            <tfoot class="bg-gray-100">
+              <tr>
+                <td colspan="4" class="px-4 py-2 border-t text-right font-semibold text-gray-700">Monthly Totals:</td>
+                <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.reservationTotal.toFixed(
+                  2
+                )} DH</td>
+                <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.yourTotalEarnings.toFixed(
+                  2
+                )} DH</td>
+                <td class="px-4 py-2 border-t text-sm text-gray-700">${monthlyTotals.brotherTotalEarnings.toFixed(
+                  2
+                )} DH</td>
+                <td class="px-4 py-2 border-t"></td>
+                <td class="px-4 py-2 border-t"></td>
+              </tr>
+            </tfoot>
+          `;
           earningsByMonth.appendChild(monthHeader);
           earningsByMonth.appendChild(table);
         }
       }
 
-      // Edit an entry
       function editEntry(index) {
-        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
-        const entry = entries[index];
-
+        const entry = entriesCache[index];
+        if (!entry) return;
         document.getElementById('guestName').value = entry.guestName;
         document.getElementById('numDays').value = entry.numDays;
         document.getElementById('reservationTotal').value =
           entry.reservationTotal;
-        document.getElementById('dailyRate').value = entry.dailyRate.toFixed(2);
+        document.getElementById('dailyRate').value = Number(
+          entry.dailyRate
+        ).toFixed(2);
         document.getElementById('yourDailyEarnings').value = (
           entry.yourTotalEarnings / entry.numDays
         ).toFixed(2);
         document.getElementById('brotherDailyEarnings').value = (
           entry.brotherTotalEarnings / entry.numDays
         ).toFixed(2);
-        document.getElementById('yourTotalEarnings').value =
-          entry.yourTotalEarnings.toFixed(2);
-        document.getElementById('brotherTotalEarnings').value =
-          entry.brotherTotalEarnings.toFixed(2);
-
-        selectedEntryIndex = index;
+        document.getElementById('yourTotalEarnings').value = Number(
+          entry.yourTotalEarnings
+        ).toFixed(2);
+        document.getElementById('brotherTotalEarnings').value = Number(
+          entry.brotherTotalEarnings
+        ).toFixed(2);
+        document.getElementById('paymentStatus').value = entry.status;
+        selectedEntryId = entry.id;
         document.querySelector(
           '#earningsForm button[type="submit"]'
         ).textContent = 'Update Entry';
       }
 
-      // Delete an entry
-      function deleteEntry(index) {
+      async function deleteEntry(index) {
+        const entry = entriesCache[index];
+        if (!entry) return;
         if (confirm('Are you sure you want to delete this entry?')) {
-          let entries =
-            JSON.parse(localStorage.getItem('earningsEntries')) || [];
-          entries.splice(index, 1);
-          localStorage.setItem('earningsEntries', JSON.stringify(entries));
-          displayEntries();
-          updateTotals();
+          try {
+            await window.firebaseOperations.deleteEntry(entry.id);
+            await displayEntries();
+            await updateTotals();
+          } catch (error) {
+            console.error('Error deleting entry:', error);
+          }
         }
       }
 
-      // Update total earnings
-      function updateTotals() {
-        let entries = JSON.parse(localStorage.getItem('earningsEntries')) || [];
+      // Updated updateTotals to calculate separate pending/completed for you and your brother.
+      async function updateTotals() {
+        const entries = await window.firebaseOperations.getEntries();
+        let totalReservation = 0;
+        let totalYourEarnings = 0;
+        let totalBrotherEarnings = 0;
+        let totalYourPending = 0;
+        let totalYourCompleted = 0;
+        let totalBrotherPending = 0;
+        let totalBrotherCompleted = 0;
 
-        let totalReservation = entries.reduce(
-          (sum, entry) => sum + entry.reservationTotal,
-          0
-        );
-        let totalYourEarnings = entries.reduce(
-          (sum, entry) => sum + entry.yourTotalEarnings,
-          0
-        );
-        let totalBrotherEarnings = entries.reduce(
-          (sum, entry) => sum + entry.brotherTotalEarnings,
-          0
-        );
+        entries.forEach((entry) => {
+          totalReservation += entry.reservationTotal;
+          totalYourEarnings += entry.yourTotalEarnings;
+          totalBrotherEarnings += entry.brotherTotalEarnings;
+          if (entry.status === 'Pending') {
+            totalYourPending += entry.yourTotalEarnings;
+            totalBrotherPending += entry.brotherTotalEarnings;
+          } else if (entry.status === 'Completed') {
+            totalYourCompleted += entry.yourTotalEarnings;
+            totalBrotherCompleted += entry.brotherTotalEarnings;
+          }
+        });
 
         document.getElementById(
           'totalReservation'
@@ -518,15 +792,28 @@
         document.getElementById(
           'totalBrotherEarnings'
         ).textContent = `${totalBrotherEarnings.toFixed(2)} DH`;
+        document.getElementById(
+          'totalYourPending'
+        ).textContent = `${totalYourPending.toFixed(2)} DH`;
+        document.getElementById(
+          'totalYourCompleted'
+        ).textContent = `${totalYourCompleted.toFixed(2)} DH`;
+        document.getElementById(
+          'totalBrotherPending'
+        ).textContent = `${totalBrotherPending.toFixed(2)} DH`;
+        document.getElementById(
+          'totalBrotherCompleted'
+        ).textContent = `${totalBrotherCompleted.toFixed(2)} DH`;
       }
 
-      // Load entries on page load
-      window.onload = function () {
-        displayEntries();
-        updateTotals();
+      window.onload = async function () {
+        await displayEntries();
+        await updateTotals();
       };
+    </script>
 
-      // Service Worker Registration
+    <!-- Service Worker Registration -->
+    <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker
