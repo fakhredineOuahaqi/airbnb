@@ -167,7 +167,7 @@
                 />
               </div>
             </div>
-            <!-- Payment Status Field -->
+            <!-- Payment Status Field with Delivered Option -->
             <div class="mb-4">
               <label
                 for="paymentStatus"
@@ -181,6 +181,7 @@
               >
                 <option value="Pending">Pending</option>
                 <option value="Completed">Completed</option>
+                <option value="Delivered">Delivered</option>
               </select>
             </div>
             <div class="mb-4">
@@ -265,6 +266,24 @@
         <div class="mt-10 max-w-full overflow-x-auto">
           <div class="bg-white p-4 rounded shadow-lg">
             <h2 class="text-2xl font-bold mb-4">Earnings History</h2>
+            <!-- Filter by Status -->
+            <div class="mb-4">
+              <label
+                for="statusFilter"
+                class="block text-gray-700 font-semibold mb-1"
+              >
+                Filter by Status:
+              </label>
+              <select
+                id="statusFilter"
+                class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-indigo-200"
+              >
+                <option value="All">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+                <option value="Delivered">Delivered</option>
+              </select>
+            </div>
             <div id="earningsByMonth">
               <!-- Monthly earnings tables will populate here -->
             </div>
@@ -296,6 +315,10 @@
                 <span class="font-semibold">Completed Reservations:</span>
                 <span id="totalYourCompleted" class="font-medium">0.00 DH</span>
               </p>
+              <p class="mb-1">
+                <span class="font-semibold">Delivered Reservations:</span>
+                <span id="totalYourDelivered" class="font-medium">0.00 DH</span>
+              </p>
             </div>
             <!-- Right Column: Brother's Totals -->
             <div class="p-4 border rounded">
@@ -304,21 +327,27 @@
               </h3>
               <p class="mb-1">
                 <span class="font-semibold">Total Earnings:</span>
-                <span id="totalBrotherEarnings" class="font-medium"
-                  >0.00 DH</span
-                >
+                <span id="totalBrotherEarnings" class="font-medium">
+                  0.00 DH
+                </span>
               </p>
               <p class="mb-1">
                 <span class="font-semibold">Pending Reservations:</span>
-                <span id="totalBrotherPending" class="font-medium"
-                  >0.00 DH</span
-                >
+                <span id="totalBrotherPending" class="font-medium">
+                  0.00 DH
+                </span>
               </p>
               <p class="mb-1">
                 <span class="font-semibold">Completed Reservations:</span>
-                <span id="totalBrotherCompleted" class="font-medium"
-                  >0.00 DH</span
-                >
+                <span id="totalBrotherCompleted" class="font-medium">
+                  0.00 DH
+                </span>
+              </p>
+              <p class="mb-1">
+                <span class="font-semibold">Delivered Reservations:</span>
+                <span id="totalBrotherDelivered" class="font-medium">
+                  0.00 DH
+                </span>
               </p>
             </div>
           </div>
@@ -596,8 +625,18 @@
         earningsByMonth.innerHTML = '';
         entriesCache = await window.firebaseOperations.getEntries();
 
+        // Filter entries based on the selected status filter
+        const statusFilter = document.getElementById('statusFilter').value;
+        let filteredEntries = entriesCache;
+        if (statusFilter !== 'All') {
+          filteredEntries = entriesCache.filter(
+            (entry) => entry.status === statusFilter
+          );
+        }
+
+        // Group entries by monthYear
         const groupedEntries = {};
-        entriesCache.forEach((entry) => {
+        filteredEntries.forEach((entry) => {
           if (!groupedEntries[entry.monthYear]) {
             groupedEntries[entry.monthYear] = [];
           }
@@ -644,8 +683,14 @@
             </thead>
             <tbody class="divide-y divide-gray-200">
               ${monthEntries
-                .map(
-                  (entry, index) => `
+                .map((entry, index) => {
+                  const statusClass =
+                    entry.status === 'Pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : entry.status === 'Completed'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-blue-100 text-blue-800';
+                  return `
                 <tr class="hover:bg-gray-50">
                   <td class="px-4 py-2 text-sm text-gray-700">${entry.date}</td>
                   <td class="px-4 py-2 text-sm text-gray-700">${
@@ -667,11 +712,7 @@
                     entry.brotherTotalEarnings
                   ).toFixed(2)} DH</td>
                   <td class="px-4 py-2 text-sm">
-                    <span class="px-2 py-1 rounded text-xs font-semibold ${
-                      entry.status === 'Pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-green-100 text-green-800'
-                    }">
+                    <span class="px-2 py-1 rounded text-xs font-semibold ${statusClass}">
                       ${entry.status}
                     </span>
                   </td>
@@ -690,8 +731,8 @@
                     </button>
                   </td>
                 </tr>
-              `
-                )
+              `;
+                })
                 .join('')}
             </tbody>
             <tfoot class="bg-gray-100">
@@ -759,7 +800,7 @@
         }
       }
 
-      // Updated updateTotals to calculate separate pending/completed for you and your brother.
+      // Updated updateTotals to calculate totals for Pending, Completed and Delivered
       async function updateTotals() {
         const entries = await window.firebaseOperations.getEntries();
         let totalReservation = 0;
@@ -767,8 +808,10 @@
         let totalBrotherEarnings = 0;
         let totalYourPending = 0;
         let totalYourCompleted = 0;
+        let totalYourDelivered = 0;
         let totalBrotherPending = 0;
         let totalBrotherCompleted = 0;
+        let totalBrotherDelivered = 0;
 
         entries.forEach((entry) => {
           totalReservation += entry.reservationTotal;
@@ -780,6 +823,9 @@
           } else if (entry.status === 'Completed') {
             totalYourCompleted += entry.yourTotalEarnings;
             totalBrotherCompleted += entry.brotherTotalEarnings;
+          } else if (entry.status === 'Delivered') {
+            totalYourDelivered += entry.yourTotalEarnings;
+            totalBrotherDelivered += entry.brotherTotalEarnings;
           }
         });
 
@@ -799,12 +845,23 @@
           'totalYourCompleted'
         ).textContent = `${totalYourCompleted.toFixed(2)} DH`;
         document.getElementById(
+          'totalYourDelivered'
+        ).textContent = `${totalYourDelivered.toFixed(2)} DH`;
+        document.getElementById(
           'totalBrotherPending'
         ).textContent = `${totalBrotherPending.toFixed(2)} DH`;
         document.getElementById(
           'totalBrotherCompleted'
         ).textContent = `${totalBrotherCompleted.toFixed(2)} DH`;
+        document.getElementById(
+          'totalBrotherDelivered'
+        ).textContent = `${totalBrotherDelivered.toFixed(2)} DH`;
       }
+
+      // Event listener for filter change
+      document
+        .getElementById('statusFilter')
+        .addEventListener('change', displayEntries);
 
       window.onload = async function () {
         await displayEntries();
@@ -812,7 +869,6 @@
       };
     </script>
 
-    <!-- Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
